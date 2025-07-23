@@ -90,13 +90,6 @@ class WhosThatPokemon():
             btn = ui.button(option, on_click=lambda o=option: self.check_answer(poke, o)).classes('m-1')
             self.option_buttons.append(btn)
 
-        
-
-def download_images():
-    for i, poke in enumerate(all_pokemon):
-        with open(f"images/{poke}.png", 'wb') as file:
-            file.write(requests.get(f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{i+1}.png").content)
-
 @ui.page("/")
 def index():
     game = WhosThatPokemon(all_pokemon)
