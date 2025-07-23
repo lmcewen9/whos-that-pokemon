@@ -1,4 +1,3 @@
-import requests
 import random
 import numpy as np
 from nicegui import ui, app
