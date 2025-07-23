@@ -35,26 +35,33 @@ all_pokemon = [
 app.add_static_files("images", "images")
 
 class WhosThatPokemon():
-    def __init__(self, pokemon_list):
+    def __init__(self, pokemon_list:list):
         self.pokemon_list = pokemon_list
-        self.current_question_index = 0
+        self.game_list = list(self.pokemon_list)
         self.score = 0
         self.question_image = ui.image('').classes('w-64 h-64 object-contain')
-        self.question_text = ui.label('')
         self.option_buttons = []
         self.feedback = ui.label('').style('font-weight: bold; color: green')
         self.score_label = ui.label(f'Score: {self.score}/{len(self.pokemon_list)}')
-        self.next_button = ui.button('Next', on_click=lambda: self.show_question()).props('disabled')
-    
-    def get_score(self):
-        return self.score
 
     def get_random_pokemon(self):
         return self.game_list[random.randint(0, len(self.game_list)-1)]
+
+    def check_answer(self, poke, option):
+        if poke == option:
+            self.score += 1
+            self.feedback.set_text("Correct!")
+            self.feedback.style('color: green')
+        else:
+            self.feedback.set_text(f"Wrong! Answer was: {poke}")
+            self.feedback.style('color: red')
+        
+        self.score_label.set_text(f"Score: {self.score}/{len(self.pokemon_list)}")
+        self.show_question()
     
     def get_four_random_pokemon(self, pokemon):
         arr = np.empty(5, dtype='<U10')
-        tmp = self.pokemon_list
+        tmp = list(self.pokemon_list)
         arr[random.randint(0,len(arr)-1)] = pokemon
         tmp.remove(pokemon)
         for i in range(len(arr)):
@@ -64,17 +71,26 @@ class WhosThatPokemon():
         return arr
 
     def show_question(self):
-        if self.current_question_index >= len(self.pokemon_list):
+        if len(self.game_list) <= 0:
             self.question_image.visible = False
             for btn in self.option_buttons:
                 btn.visible = False
             self.feedback.set_text('Quiz Complete!')
-            self.next_button.disable()
             return
         
-        q = self.pokemon_list[self.current_question_index]
-        self.question_image.set_source(f"images/{q}.png")
+        poke = self.game_list[random.randint(0,len(self.game_list)-1)]
+        self.game_list.remove(poke)
+        self.question_image.set_source(f"images/{poke}.png")
 
+        for btn in self.option_buttons:
+            btn.delete()
+        self.option_buttons.clear()
+
+        for option in self.get_four_random_pokemon(poke):
+            btn = ui.button(option, on_click=lambda o=option: self.check_answer(poke, o)).classes('m-1')
+            self.option_buttons.append(btn)
+
+        
 
 def download_images():
     for i, poke in enumerate(all_pokemon):
@@ -83,16 +99,8 @@ def download_images():
 
 @ui.page("/")
 def index():
-    ui.label('Welcome to my NiceGUI app!')
-    ui.button('Click me', on_click=lambda: ui.notify('Button clicked!'))
-
-def main():
-    #download_images()
     game = WhosThatPokemon(all_pokemon)
-    poke = game.get_random_pokemon()
-    print(poke)
-    print(game.get_four_random_pokemon(poke))
+    game.show_question()
 
 if __name__ in {"__main__", "__mp_main__"}:
-    #ui.run(title="Who's that Pokemon!")
-    main()
+    ui.run(title="Who's that Pokemon!")
